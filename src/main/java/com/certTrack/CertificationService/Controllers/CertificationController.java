@@ -66,6 +66,11 @@ public class CertificationController {
     	return certificationService.findByUserId(id);
     }
     
+    @GetMapping("/usercourse")
+    public Certification getCertificatesByUserIdAndCourseId(@RequestParam int userId, @RequestParam int courseId) {
+    	return certificationService.findByUserIdAndCourseId(userId, courseId);
+    }
+    
     @DeleteMapping("/admin/delete")
     public ResponseEntity<?> deleteCertificate(@RequestParam int id){
     	Certification certification = certificationService.findById(id);

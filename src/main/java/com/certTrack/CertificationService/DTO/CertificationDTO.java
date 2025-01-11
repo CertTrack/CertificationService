@@ -20,7 +20,6 @@ public class CertificationDTO {
     public CertificationDTO() {
     }
 
-    // Getters and setters
     public int getId() {
         return id;
     }

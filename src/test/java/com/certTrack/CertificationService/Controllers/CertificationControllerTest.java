@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -52,22 +54,45 @@ class CertificationControllerTest {
 	            .andExpect(status().isOk())
 	            .andExpect(content().json(responseJson));
 	}
+	
+	@WithMockUser
+	@Test
+	public void AuthorizedUserCanSeeCertificationsByUserId() throws Exception{
+		 List<Certification> list = List.of(new Certification(16,7,"2024-12-25", "ABC123DEF", "3_1727011972926.jpg")); 
+		 String responseJson = objectMapper.writeValueAsString(list);
+		 api.perform(get("/certifications/user?id=16")
+	            .contentType(MediaType.APPLICATION_JSON))
+	            .andExpect(status().isOk())
+	            .andExpect(content().json(responseJson));
+	}
+	
+	@WithMockUser
+	@Test
+	public void AuthorizedUserCanSeeCertificationsByUserIdAndCourseId() throws Exception{
+		Certification certification = new Certification(16,7,"2024-12-25", "ABC123DEF", "3_1727011972926.jpg"); 
+		 String responseJson = objectMapper.writeValueAsString(certification);
+		 api.perform(get("/certifications/usercourse?userId=16&courseId=7")
+	            .contentType(MediaType.APPLICATION_JSON))
+	            .andExpect(status().isOk())
+	            .andExpect(content().json(responseJson));
+	}
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanValidateFAKECertification() throws Exception{
-		ResponseEntity<?> message = certificationService.findByValidationCode("ABC123DEF");
+		ResponseEntity<?> message = certificationService.findByValidationCode("ABC123DEFasd");
 
-		String responseJson = objectMapper.writeValueAsString(message);
-		api.perform(get("/certifications/validate?validationCode=ABC123DEFas")
+		String responseJson = objectMapper.writeValueAsString(message.getBody());
+		System.out.println("!!!!!!!!!!!!!!!"+responseJson);
+		api.perform(get("/certifications/validate?validationCode=ABC123DEFasd")
 	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().is4xxClientError())
+	            .andExpect(status().isNotFound())
 	            .andExpect(content().json(responseJson));
 	}
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanValidateREALCertification() throws Exception{
 		ResponseEntity<?> message = certificationService.findByValidationCode("ABC123DEF");
-		String responseJson = objectMapper.writeValueAsString(message);
+		String responseJson = objectMapper.writeValueAsString(message.getBody());
 		api.perform(get("/certifications/validate?validationCode=ABC123DEF")
 	            .contentType(MediaType.APPLICATION_JSON))
 	            .andExpect(status().isOk())
@@ -78,7 +103,7 @@ class CertificationControllerTest {
 	@Test
 	public void AdminCanDeleteCourses() throws Exception{
 		ResponseEntity<ResponseMessage> message = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Certification not found."));
-		 String responseJson = objectMapper.writeValueAsString(message);
+		 String responseJson = objectMapper.writeValueAsString(message.getBody());
 		 api.perform(delete("/certifications/admin/delete?id=100")
 	            .contentType(MediaType.APPLICATION_JSON))
 	            .andExpect(status().is4xxClientError())

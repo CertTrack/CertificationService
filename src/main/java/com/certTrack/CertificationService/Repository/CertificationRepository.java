@@ -11,6 +11,8 @@ import com.certTrack.CertificationService.Entity.Certification;
 @Repository
 public interface CertificationRepository extends JpaRepository<Certification, Integer> {
 
+	List<Certification> findByUserIdAndCourseId(int userId, int courseId);
+	
     Optional<Certification> findByValidationCode(String validationCode);
 
 	List<Certification> findByUserId(int id);

@@ -37,20 +37,12 @@ public class CertificationService {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
-    
-    
-
-    
-    
-    public String getCourseNameById(int courseId) {
-        String url = "http://localhost/courses/id/" + courseId;
-        CourseDTO course = restTemplate.getForObject(url, CourseDTO.class);
-        return course != null ? course.getName() : null;
-    }
-    
-
 	public List<Certification> findByUserId(int id) {
 		return certificationRepository.findByUserId(id);
+	}
+	
+	public Certification findByUserIdAndCourseId(int userId, int courseId) {
+		return certificationRepository.findByUserIdAndCourseId(userId, courseId).getFirst();
 	}
 	
 	
