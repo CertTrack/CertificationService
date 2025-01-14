@@ -27,20 +27,17 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		log.info("!!!Start doFilterInternal");
 		extractTokenFromRequest(request)
 				.map(decoder::decode)
 				.map(converter::convert)
 				.map(UserPrincipalAuthenticationToken::new)
 				.ifPresent(authentication -> SecurityContextHolder.getContext().setAuthentication(authentication));
-		log.info("!!!succes doFilterInternal in filter");
 		filterChain.doFilter(request, response);
 	}
 
 	private Optional<String> extractTokenFromRequest(HttpServletRequest request) {
 		var token = request.getHeader("Authorization");
 		if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-			log.info("filter for bearer succes token: " + token);
 			return Optional.of(token.substring(7));
 		}
 		log.info("filter for bearer error token: " + token);
