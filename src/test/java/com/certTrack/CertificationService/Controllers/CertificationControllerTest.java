@@ -47,9 +47,9 @@ class CertificationControllerTest {
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanSeeCertificationsById() throws Exception{
-		Certification certification = new Certification(16,7,"2024-12-25", "ABC123DEF", "3_1727011972926.jpg"); 
+		Certification certification = new Certification(16,7,"2025-01-14 09:11", "ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs", "7_2025-01-14_09-04.png"); 
 		 String responseJson = objectMapper.writeValueAsString(certification);
-		 api.perform(get("/certifications/id?id=3")
+		 api.perform(get("/certifications/id?id=7")
 	            .contentType(MediaType.APPLICATION_JSON))
 	            .andExpect(status().isOk())
 	            .andExpect(content().json(responseJson));
@@ -58,7 +58,7 @@ class CertificationControllerTest {
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanSeeCertificationsByUserId() throws Exception{
-		 List<Certification> list = List.of(new Certification(16,7,"2024-12-25", "ABC123DEF", "3_1727011972926.jpg")); 
+		 List<Certification> list = List.of(new Certification(16,7,"2025-01-14 09:11", "ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs", "7_2025-01-14_09-04.png")); 
 		 String responseJson = objectMapper.writeValueAsString(list);
 		 api.perform(get("/certifications/user?id=16")
 	            .contentType(MediaType.APPLICATION_JSON))
@@ -69,7 +69,7 @@ class CertificationControllerTest {
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanSeeCertificationsByUserIdAndCourseId() throws Exception{
-		Certification certification = new Certification(16,7,"2024-12-25", "ABC123DEF", "3_1727011972926.jpg"); 
+		Certification certification = new Certification(16,7,"2025-01-14 09:11", "ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs", "7_2025-01-14_09-04.png"); 
 		 String responseJson = objectMapper.writeValueAsString(certification);
 		 api.perform(get("/certifications/usercourse?userId=16&courseId=7")
 	            .contentType(MediaType.APPLICATION_JSON))
@@ -82,7 +82,6 @@ class CertificationControllerTest {
 		ResponseEntity<?> message = certificationService.findByValidationCode("ABC123DEFasd");
 
 		String responseJson = objectMapper.writeValueAsString(message.getBody());
-		System.out.println("!!!!!!!!!!!!!!!"+responseJson);
 		api.perform(get("/certifications/validate?validationCode=ABC123DEFasd")
 	            .contentType(MediaType.APPLICATION_JSON))
 	            .andExpect(status().isNotFound())
@@ -91,9 +90,9 @@ class CertificationControllerTest {
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanValidateREALCertification() throws Exception{
-		ResponseEntity<?> message = certificationService.findByValidationCode("ABC123DEF");
+		ResponseEntity<?> message = certificationService.findByValidationCode("ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs");
 		String responseJson = objectMapper.writeValueAsString(message.getBody());
-		api.perform(get("/certifications/validate?validationCode=ABC123DEF")
+		api.perform(get("/certifications/validate?validationCode=ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs")
 	            .contentType(MediaType.APPLICATION_JSON))
 	            .andExpect(status().isOk())
 	            .andExpect(content().json(responseJson));
@@ -109,86 +108,4 @@ class CertificationControllerTest {
 	            .andExpect(status().is4xxClientError())
 	            .andExpect(content().json(responseJson));
 	}
-/*int userId, int courseId, String issuedDate, String validationCode,
-			String filePath
- *     @DeleteMapping("/admin/delete")
- *     @GetMapping("/user")
- *      @GetMapping("/id")
- *      @GetMapping("/validate")
- *      @PostMapping("/upload")
- *      
- *      	@Autowired
-	MockMvc api;
-
-	@Autowired
-	private ObjectMapper objectMapper;
-	
-	@Autowired
-	private CourseService courseService;
-	
-
-	@Test
-	public void NotAuthorizedUserCanNotSeeAnyEndpoint() throws Exception {
-		api.perform(get("/courses/")).andExpect(status().is4xxClientError());
-		api.perform(get("/courses/id?id=1")).andExpect(status().is4xxClientError());
-		api.perform(get("/courses/name?name=Java")).andExpect(status().is4xxClientError());
-		api.perform(get("/courses/category?category=Java")).andExpect(status().is4xxClientError());
-	}
-
-	@WithMockUser
-	@Test
-	public void AuthorizedUserCanSeeCoursesById() throws Exception{
-		 CourseDTO courseDTO = new CourseDTO(1, "java for beginers", "this course is for beginers witch wont to start learn java","Java", 10);
-		 String responseJson = objectMapper.writeValueAsString(courseDTO);
-		 api.perform(get("/courses/id?id=1")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
-	}
-	
-	@WithMockUser
-	@Test
-	public void AuthorizedUserCanSeeCoursesByName() throws Exception{
-		 List<CourseDTO> courseDTO = courseService.getCoursesByName("JAVA");
-		 String responseJson = objectMapper.writeValueAsString(courseDTO);
-		 api.perform(get("/courses/name?name=Java")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
-	}
-	
-	@WithMockUser
-	@Test
-	public void AuthorizedUserCanSeeCoursesByCategory() throws Exception{
-		 List<CourseDTO> courseDTO = courseService.getCoursesByCategory("JAVA");
-		 String responseJson = objectMapper.writeValueAsString(courseDTO);
-		 api.perform(get("/courses/category?category=Java")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
-	}
-	
-	@WithMockUser
-	@Test
-	public void AuthorizedUserCanSeeAllCourses() throws Exception{
-		 List<CourseDTO> courses = courseService.getCourses();
-		 String responseJson = objectMapper.writeValueAsString(courses);
-		 api.perform(get("/courses/")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
-	}
-	
-	@WithMockUser(roles = "ADMIN")
-	@Test
-	public void AdminCanDeleteCourses() throws Exception{
-		 ResponseMessage message = new ResponseMessage("no course by this id");
-		 String responseJson = objectMapper.writeValueAsString(message);
-		 api.perform(delete("/courses/admin/delete?id=100")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
-	}
- 
- */
 }
