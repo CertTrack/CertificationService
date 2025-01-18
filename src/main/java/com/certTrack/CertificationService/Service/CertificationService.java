@@ -24,9 +24,6 @@ import com.certTrack.CertificationService.Repository.CertificationRepository;
 @Service
 public class CertificationService {
 
-    @Autowired
-    private RestTemplate restTemplate;
-   
     @Autowired 
     private AmazonS3 amazonS3;
 

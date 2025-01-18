@@ -22,18 +22,16 @@ import com.certTrack.CertificationService.Entity.Certification;
 import com.certTrack.CertificationService.Service.CertificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CertificationControllerTest {
 
-	
 	@Autowired
 	MockMvc api;
-	
+
 	@Autowired
 	ObjectMapper objectMapper;
-	
+
 	@Autowired
 	CertificationService certificationService;
 
@@ -44,68 +42,66 @@ class CertificationControllerTest {
 		api.perform(get("/certifications/validate?validationCode=ABC123DEF")).andExpect(status().is4xxClientError());
 		api.perform(delete("/certifications/admin/delete?id=1")).andExpect(status().is4xxClientError());
 	}
+
 	@WithMockUser
 	@Test
-	public void AuthorizedUserCanSeeCertificationsById() throws Exception{
-		Certification certification = new Certification(16,7,"2025-01-14 09:11", "ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs", "7_2025-01-14_09-04.png"); 
-		 String responseJson = objectMapper.writeValueAsString(certification);
-		 api.perform(get("/certifications/id?id=7")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
+	public void AuthorizedUserCanSeeCertificationsById() throws Exception {
+		Certification certification = new Certification(1, 3, "2025-01-17 10:30",
+				"LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY", "1_1727011972926.jpg");
+		String responseJson = objectMapper.writeValueAsString(certification);
+		api.perform(get("/certifications/id?id=1").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(content().json(responseJson));
 	}
-	
+
 	@WithMockUser
 	@Test
-	public void AuthorizedUserCanSeeCertificationsByUserId() throws Exception{
-		 List<Certification> list = List.of(new Certification(16,7,"2025-01-14 09:11", "ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs", "7_2025-01-14_09-04.png")); 
-		 String responseJson = objectMapper.writeValueAsString(list);
-		 api.perform(get("/certifications/user?id=16")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
+	public void AuthorizedUserCanSeeCertificationsByUserId() throws Exception {
+		List<Certification> list = List.of(new Certification(1, 3, "2025-01-17 10:30",
+				"LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY", "1_1727011972926.jpg"));
+		String responseJson = objectMapper.writeValueAsString(list);
+		api.perform(get("/certifications/user?id=1").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(content().json(responseJson));
 	}
-	
+
 	@WithMockUser
 	@Test
-	public void AuthorizedUserCanSeeCertificationsByUserIdAndCourseId() throws Exception{
-		Certification certification = new Certification(16,7,"2025-01-14 09:11", "ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs", "7_2025-01-14_09-04.png"); 
-		 String responseJson = objectMapper.writeValueAsString(certification);
-		 api.perform(get("/certifications/usercourse?userId=16&courseId=7")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
+	public void AuthorizedUserCanSeeCertificationsByUserIdAndCourseId() throws Exception {
+		Certification certification = new Certification(1, 3, "2025-01-17 10:30",
+				"LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY", "1_1727011972926.jpg");
+		String responseJson = objectMapper.writeValueAsString(certification);
+		api.perform(get("/certifications/usercourse?userId=1&courseId=3").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk()).andExpect(content().json(responseJson));
 	}
+
 	@WithMockUser
 	@Test
-	public void AuthorizedUserCanValidateFAKECertification() throws Exception{
+	public void AuthorizedUserCanValidateFAKECertification() throws Exception {
 		ResponseEntity<?> message = certificationService.findByValidationCode("ABC123DEFasd");
 
 		String responseJson = objectMapper.writeValueAsString(message.getBody());
-		api.perform(get("/certifications/validate?validationCode=ABC123DEFasd")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isNotFound())
-	            .andExpect(content().json(responseJson));
+		api.perform(get("/certifications/validate?validationCode=ABC123DEFasd").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isNotFound()).andExpect(content().json(responseJson));
 	}
+
 	@WithMockUser
 	@Test
-	public void AuthorizedUserCanValidateREALCertification() throws Exception{
-		ResponseEntity<?> message = certificationService.findByValidationCode("ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs");
+	public void AuthorizedUserCanValidateREALCertification() throws Exception {
+		ResponseEntity<?> message = certificationService
+				.findByValidationCode("LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY");
 		String responseJson = objectMapper.writeValueAsString(message.getBody());
-		api.perform(get("/certifications/validate?validationCode=ts5XBCr1oLUNLVGoxv54DxYz7FhHSIFSlc1dYnmauFs")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().isOk())
-	            .andExpect(content().json(responseJson));
-		
+		api.perform(get("/certifications/validate?validationCode=LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY")
+				.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(content().json(responseJson));
+
 	}
+
 	@WithMockUser(auth = "ROLE_ADMIN")
 	@Test
-	public void AdminCanDeleteCourses() throws Exception{
-		ResponseEntity<ResponseMessage> message = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Certification not found."));
-		 String responseJson = objectMapper.writeValueAsString(message.getBody());
-		 api.perform(delete("/certifications/admin/delete?id=100")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(status().is4xxClientError())
-	            .andExpect(content().json(responseJson));
+	public void AdminCanDeleteCourses() throws Exception {
+		ResponseEntity<ResponseMessage> message = ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ResponseMessage("Certification not found."));
+		String responseJson = objectMapper.writeValueAsString(message.getBody());
+		api.perform(delete("/certifications/admin/delete?id=100").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().is4xxClientError()).andExpect(content().json(responseJson));
 	}
 }
