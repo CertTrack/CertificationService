@@ -19,7 +19,7 @@ The **Certification Service** manages the uploading, validation, and retrieval o
 - **Jackson ObjectMapper**: Parses and processes JSON metadata.
 - **RESTful API Design**: Provides a clean and structured API interface.
 - **Spring Cloud Eureka Client**
-
+- **Swagger**: For API documentation and testing.
 ---
 
 ## Security
