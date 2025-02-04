@@ -31,13 +31,13 @@ public class CertificationController {
 
     @PostMapping("/upload")
     public ResponseMessage uploadCertificateFile(
-            @RequestPart("metadata") String metadataJson,
-            @RequestPart("file") MultipartFile file) throws JsonProcessingException {
+            @RequestPart("metadata") String metadataJson/*,
+            @RequestPart("file") MultipartFile file*/) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         Certification metadata = objectMapper.readValue(metadataJson, Certification.class);
 
-        certificationService.saveCertificate(file, metadata);
-        return new ResponseMessage("File uploaded successfully");
+        certificationService.saveCertificate(metadata);
+        return new ResponseMessage("Certificate uploaded successfully");
     }
 
 
