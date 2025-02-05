@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -17,11 +18,18 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.certTrack.CertificationService.DTO.ResponseMessage;
 import com.certTrack.CertificationService.Entity.Certification;
 import com.certTrack.CertificationService.Repository.CertificationRepository;
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
 @Service
@@ -33,6 +41,9 @@ public class CertificationService {
 	@Autowired
 	private CertificationRepository certificationRepository;
 
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
 	@Value("${aws.s3.bucket}")
 	private String bucket;
 
@@ -74,37 +85,73 @@ public class CertificationService {
 	}
 
 	private byte[] createCertificatePdf(Certification certification) {
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		Document document = new Document(PageSize.A4.rotate()); // горизонтальна орієнтація
+	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+	    Document document = new Document(PageSize.A4.rotate());
 
-		try {
-			PdfWriter.getInstance(document, outputStream);
-			document.open();
+	    try {
+	        PdfWriter.getInstance(document, outputStream);
+	        document.open();
 
-			// Додаємо заголовок
-			Paragraph title = new Paragraph("Course Certificate");
-			title.setAlignment(Element.ALIGN_CENTER);
-			document.add(title);
+	        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA, 30);
+	        Font defaultFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+	        Font grayFont = FontFactory.getFont(FontFactory.HELVETICA, 14, Font.NORMAL, BaseColor.GRAY);
+	        Font userNameFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 34);
+	        Font courseFont = FontFactory.getFont(FontFactory.HELVETICA, 30);
 
-			// Додаємо дані з об'єкту Certification
-			document.add(new Paragraph("\n\n")); // пропуск кількох рядків
-			document.add(new Cell("This certifies that:"));
-			document.add(new Paragraph(certification.getUserId()));
-			document.add(new Paragraph("\n\n")); // пропуск кількох рядків
-			document.add(new Paragraph("has successfully completed the course by demonstrating theoretical and practical understanding of"));
-			document.add(new Paragraph(certification.getCourseId()));
-			document.add(new Paragraph("\n\n")); // пропуск кількох рядків
-			document.add(new Paragraph("Date: " + certification.getIssuedDate()));
-			document.add(new Paragraph("Certification ID: " + certification.getId()));
-			document.add(new Paragraph("Validation code: " + certification.getValidationCode()));
+	        Paragraph title = new Paragraph("Course Certificate", titleFont);
+	        title.setAlignment(Element.ALIGN_CENTER);
+	        document.add(title);
 
-			document.close();
-		} catch (DocumentException e) {
-			e.printStackTrace();
-		}
+	        document.add(new Paragraph("\n\n\n\n\n")); // Пропуск кількох рядків
 
-		return outputStream.toByteArray();
+	        Paragraph certifiesText = new Paragraph("This certifies that:", grayFont);
+	        certifiesText.setAlignment(Element.ALIGN_CENTER);
+	        document.add(certifiesText);
+
+	        String query = "SELECT email FROM users WHERE id = ?";
+	        String userName = jdbcTemplate.queryForObject(query, String.class, certification.getUserId());
+	        Paragraph userNameParagraph = new Paragraph(userName, userNameFont);
+	        userNameParagraph.setAlignment(Element.ALIGN_CENTER);
+	        document.add(userNameParagraph);
+
+	        document.add(new Paragraph("\n\n")); // Пропуск кількох рядків
+
+	        
+
+
+	        PdfPCell cell = new PdfPCell(new Phrase("has successfully completed the course by demonstrating theoretical and practical understanding of", grayFont));
+	        cell.setBorder(Rectangle.NO_BORDER);
+	        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+	        cell.setNoWrap(false); // Дозволяє перенесення рядків
+	        PdfPTable table = new PdfPTable(1);
+	        table.setWidthPercentage(40); // Встановлення ширини таблиці у відсотках від ширини сторінки
+	        table.setHorizontalAlignment(Element.ALIGN_CENTER);
+	        table.addCell(cell);
+	        document.add(table);
+//	        Paragraph hasCompletedText = new Paragraph("has successfully completed the course by demonstrating theoretical and practical understanding of", grayFont);
+//	        hasCompletedText.setAlignment(Element.ALIGN_CENTER);
+//	        document.add(hasCompletedText);
+
+	        String queryOfCourseName = "SELECT name FROM course WHERE id = ?";
+	        String courseName = jdbcTemplate.queryForObject(queryOfCourseName, String.class, certification.getCourseId());
+	        Paragraph courseNameParagraph = new Paragraph(courseName, courseFont);
+	        courseNameParagraph.setAlignment(Element.ALIGN_CENTER);
+	        document.add(courseNameParagraph);
+
+	        document.add(new Paragraph("\n\n\n\n\n")); // Пропуск кількох рядків
+
+	        Paragraph details = new Paragraph("CertTrack corp. by Dmytro Trofimov\nDate: " + certification.getIssuedDate() + "\nCertification ID: " + certification.getId() + "\nValidation code: " + certification.getValidationCode(), defaultFont);
+	        details.setAlignment(Element.ALIGN_RIGHT);
+	        document.add(details);
+
+	        document.close();
+	    } catch (DocumentException e) {
+	        e.printStackTrace();
+	    }
+
+	    return outputStream.toByteArray();
 	}
+
 
 //    public void saveCertificate(MultipartFile file, Certification certification) {
 //    	certification = certificationRepository.save(certification);
