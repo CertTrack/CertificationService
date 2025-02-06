@@ -20,6 +20,7 @@ The **Certification Service** manages the uploading, validation, and retrieval o
 - **RESTful API Design**: Provides a clean and structured API interface.
 - **Spring Cloud Eureka Client**
 - **Swagger**: For API documentation and testing.
+- **ITextPDF**: For generating pdf cetrification.
 ---
 
 ## Security
@@ -36,7 +37,6 @@ The service uses Spring Security to ensure endpoints are secured. All requests r
 
 **Request Parts:**
 - `metadata` (String): JSON string containing certification details.
-- `file` (MultipartFile): Certification file to upload.
 
 **Sample Metadata:**
 ```json

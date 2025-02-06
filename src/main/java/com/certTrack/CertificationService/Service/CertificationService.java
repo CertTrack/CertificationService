@@ -2,6 +2,8 @@ package com.certTrack.CertificationService.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +26,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
@@ -144,10 +147,19 @@ public class CertificationService {
 	        details.setAlignment(Element.ALIGN_RIGHT);
 	        document.add(details);
 
+
+	        Image image = Image.getInstance("file:///home/dmytro/%D0%97%D0%B0%D0%B2%D0%B0%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D0%BD%D0%BD%D1%8F/photo_5269732161760651566_x.jpg");
+	        image.setAbsolutePosition(36, 36); // Встановлення позиції зображення
+	        image.scaleToFit(100, 100); // Встановлення розміру зображення
+	        document.add(image);
 	        document.close();
 	    } catch (DocumentException e) {
 	        e.printStackTrace();
-	    }
+	    } catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	    return outputStream.toByteArray();
 	}
