@@ -31,6 +31,7 @@ public class SecurityConfig {
 			.securityMatcher("/certifications/**")
 			.authorizeHttpRequests(
 					(registry) -> registry
+						.requestMatchers("upload").hasRole("SERVICE")
 						.requestMatchers("admin/delete").hasRole("ADMIN")
 						.anyRequest().authenticated()
 					);

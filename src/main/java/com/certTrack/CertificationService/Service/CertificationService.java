@@ -72,7 +72,7 @@ public class CertificationService {
 				.body(new ResponseMessage("Invalid certification code or certification not found."));
 	}
 
-	public void saveCertificate(Certification certification) {
+	public ResponseMessage saveCertificate(Certification certification) {
 		certification = certificationRepository.save(certification);
 
 		byte[] pdfBytes = createCertificatePdf(certification);
@@ -85,6 +85,7 @@ public class CertificationService {
 
 		certification.setFilePath(fileName);
 		certificationRepository.save(certification);
+		return new ResponseMessage("Certificate uploaded successfully");
 	}
 
 	private byte[] createCertificatePdf(Certification certification) {
