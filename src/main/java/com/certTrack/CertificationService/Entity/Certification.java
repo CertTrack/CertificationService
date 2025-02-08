@@ -37,7 +37,7 @@ public class Certification {
 	@PrePersist
 	public void updateIssueDateAndCreateValidationCode() {
 		LocalDateTime dateTime = LocalDateTime.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm");
 		this.issuedDate = dateTime.format(formatter);
 		
 		generateValidationCode();

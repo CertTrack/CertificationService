@@ -1,8 +1,10 @@
 package com.certTrack.CertificationService.Controllers;
 
 import java.util.List;
+import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,17 +63,19 @@ public class CertificationController {
     }
     
     @GetMapping("/usercourse")
-    public Certification getCertificatesByUserIdAndCourseId(@RequestParam int userId, @RequestParam int courseId) {
-    	return certificationService.findByUserIdAndCourseId(userId, courseId);
+    public ResponseEntity<ByteArrayResource> getCertificatesByUserIdAndCourseId(@RequestParam int userId, @RequestParam int courseId) {
+    	byte[] data = certificationService.findByUserIdAndCourseId(userId, courseId);
+    	ByteArrayResource arrayResource = new ByteArrayResource(data);
+    	return ResponseEntity
+    			.ok()
+    			.contentLength(data.length)
+    			.header("Content-type", "application/octet-stream")
+    			.header("Content-disposition", "attachment; filename=\""+"certificate.pdf"+"\"")
+    			.body(arrayResource);
     }
     
     @DeleteMapping("/admin/delete")
     public ResponseEntity<?> deleteCertificate(@RequestParam int id){
-    	Certification certification = certificationService.findById(id);
-        if (certification == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Certification not found."));
-        }
-        certificationService.deleteCertificateById(id);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ResponseMessage("Certification succesfuly deleted."));
+        return certificationService.deleteCertificateById(id);
     }
 }

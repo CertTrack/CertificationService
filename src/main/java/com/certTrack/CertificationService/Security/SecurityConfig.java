@@ -31,8 +31,9 @@ public class SecurityConfig {
 			.securityMatcher("/certifications/**")
 			.authorizeHttpRequests(
 					(registry) -> registry
-						.requestMatchers("upload").hasRole("SERVICE")
-						.requestMatchers("admin/delete").hasRole("ADMIN")
+						.requestMatchers("/certifications/upload").hasRole("SERVICE")
+						//.requestMatchers("/certifications/usercourse").permitAll()
+						.requestMatchers("/certifications/admin/delete").hasRole("ADMIN")
 						.anyRequest().authenticated()
 					);
 		return http.build();

@@ -15,8 +15,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.util.IOUtils;
 import com.certTrack.CertificationService.DTO.ResponseMessage;
 import com.certTrack.CertificationService.Entity.Certification;
 import com.certTrack.CertificationService.Repository.CertificationRepository;
@@ -54,8 +58,18 @@ public class CertificationService {
 		return certificationRepository.findByUserId(id);
 	}
 
-	public Certification findByUserIdAndCourseId(int userId, int courseId) {
-		return certificationRepository.findByUserIdAndCourseId(userId, courseId).getFirst();
+	public byte[] findByUserIdAndCourseId(int userId, int courseId) {
+		Certification cert = certificationRepository.findByUserIdAndCourseId(userId, courseId).getFirst();
+		System.out.println("my najsli "+ cert.getFilePath());
+		S3Object object = amazonS3.getObject(bucket, cert.getFilePath());
+		S3ObjectInputStream inputStream = object.getObjectContent();
+		try {
+			byte[] content = IOUtils.toByteArray(inputStream);
+			return content;
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public Certification findById(int id) {
@@ -189,10 +203,13 @@ public class CertificationService {
 //		return convertedFile;
 //	}
 
-	public void deleteCertificateById(int id) {
-		Certification certification = certificationRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Certification not found."));
+	public ResponseEntity<?> deleteCertificateById(int id) {
+    	Certification certification = this.findById(id);
+        if (certification == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Certification not found."));
+        }
 		amazonS3.deleteObject(bucket, certification.getFilePath());
 		certificationRepository.deleteById(id);
+		return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ResponseMessage("Certification succesfuly deleted."));
 	}
 }
