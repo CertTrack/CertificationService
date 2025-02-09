@@ -27,7 +27,6 @@ public class CertificationController {
     @Autowired
     private CertificationService certificationService;
 
-    @PreAuthorize("hasAuthority('ROLE_SERVICE')")
     @PostMapping("/upload")
     public ResponseMessage uploadCertificateFile(
             @RequestParam int userId,

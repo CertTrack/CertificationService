@@ -32,7 +32,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(
 					(registry) -> registry
 						.requestMatchers("/certifications/upload").hasRole("SERVICE")
-						//.requestMatchers("/certifications/usercourse").permitAll()
+						.requestMatchers("/certifications/usercourse").hasAnyRole("SERVICE", "USER", "ADMIN")
 						.requestMatchers("/certifications/admin/delete").hasRole("ADMIN")
 						.anyRequest().authenticated()
 					);
