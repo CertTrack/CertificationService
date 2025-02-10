@@ -33,23 +33,16 @@ The service uses Spring Security to ensure endpoints are secured. All requests r
 ### General Endpoints
 
 #### `POST /certifications/upload`
-**Description:** Uploads a certification file with associated metadata.
+**Description:** Create(by iTextPDF) and uploads a certification file by user and course id.
 
-**Request Parts:**
-- `metadata` (String): JSON string containing certification details.
-
-**Sample Metadata:**
-```json
-{
-  "userId":1,
-  "courseId":3
-}
-```
+**Request Parameters:**
+- `userId` (Integer): User id which completed course.
+- `courseId` (Integer): Id of course which user complete.
 
 **Response:**
 ```json
 {
-  "message": "File uploaded successfully"
+  "message": "Certificate uploaded successfully"
 }
 ```
 
