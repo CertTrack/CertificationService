@@ -21,7 +21,7 @@ import com.certTrack.CertificationService.DTO.ResponseMessage;
 import com.certTrack.CertificationService.Entity.Certification;
 import com.certTrack.CertificationService.Service.CertificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CertificationControllerTest {
@@ -46,31 +46,31 @@ class CertificationControllerTest {
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanSeeCertificationsById() throws Exception {
-		Certification certification = new Certification(1, 3, "2025-01-17 10:30",
-				"LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY", "1_1727011972926.jpg");
+		Certification certification = new Certification(3, 1, "2025-02-09_13:56",
+				"KA1V_WASH-9Jgct5Mojf7tNROIFR3_EUgKNjQFVkOiE", "47_3_2025-02-09_13:56.pdf");
 		String responseJson = objectMapper.writeValueAsString(certification);
-		api.perform(get("/certifications/id?id=1").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+		api.perform(get("/certifications/id?id=47").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(content().json(responseJson));
 	}
 
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanSeeCertificationsByUserId() throws Exception {
-		List<Certification> list = List.of(new Certification(1, 3, "2025-01-17 10:30",
-				"LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY", "1_1727011972926.jpg"));
+		List<Certification> list = certificationService.findByUserId(1);
 		String responseJson = objectMapper.writeValueAsString(list);
 		api.perform(get("/certifications/user?id=1").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(content().json(responseJson));
 	}
 
-	@WithMockUser
+	@WithMockUser(auth = "ROLE_SERVICE")
 	@Test
 	public void AuthorizedUserCanSeeCertificationsByUserIdAndCourseId() throws Exception {
-		Certification certification = new Certification(1, 3, "2025-01-17 10:30",
-				"LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY", "1_1727011972926.jpg");
-		String responseJson = objectMapper.writeValueAsString(certification);
-		api.perform(get("/certifications/usercourse?userId=1&courseId=3").contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk()).andExpect(content().json(responseJson));
+		api.perform(get("/certifications/usercourse")
+                .param("userId", "1")
+                .param("courseId", "5"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/octet-stream"))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"certificate.pdf\""));
 	}
 
 	@WithMockUser
@@ -87,10 +87,11 @@ class CertificationControllerTest {
 	@Test
 	public void AuthorizedUserCanValidateREALCertification() throws Exception {
 		ResponseEntity<?> message = certificationService
-				.findByValidationCode("LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY");
+				.findByValidationCode("Sw0iIjorYHX6jch7U-x_FLniNYzz1YiK7DeFf55SScQ");
 		String responseJson = objectMapper.writeValueAsString(message.getBody());
-		api.perform(get("/certifications/validate?validationCode=LA9eJuUcVPP-NloA10rIKQ4ZAp7_5er3emXStqh4XfY")
-				.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+		api.perform(get("/certifications/validate?validationCode=Sw0iIjorYHX6jch7U-x_FLniNYzz1YiK7DeFf55SScQ")
+				.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
 				.andExpect(content().json(responseJson));
 
 	}

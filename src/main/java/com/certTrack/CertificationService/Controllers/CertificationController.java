@@ -63,6 +63,8 @@ public class CertificationController {
     
     @GetMapping("/usercourse")
     public ResponseEntity<ByteArrayResource> getCertificatesByUserIdAndCourseId(@RequestParam int userId, @RequestParam int courseId) {
+    	System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    			+ userId + " " + courseId);
     	byte[] data = certificationService.findByUserIdAndCourseId(userId, courseId);
     	ByteArrayResource arrayResource = new ByteArrayResource(data);
     	return ResponseEntity
@@ -71,7 +73,7 @@ public class CertificationController {
     			.header("Content-type", "application/octet-stream")
     			.header("Content-disposition", "attachment; filename=\""+"certificate.pdf"+"\"")
     			.body(arrayResource);
-    }
+    } 
     
     @DeleteMapping("/admin/delete")
     public ResponseEntity<?> deleteCertificate(@RequestParam int id){

@@ -60,7 +60,6 @@ public class CertificationService {
 
 	public byte[] findByUserIdAndCourseId(int userId, int courseId) {
 		Certification cert = certificationRepository.findByUserIdAndCourseId(userId, courseId).getFirst();
-		System.out.println("my najsli "+ cert.getFilePath());
 		S3Object object = amazonS3.getObject(bucket, cert.getFilePath());
 		S3ObjectInputStream inputStream = object.getObjectContent();
 		try {
