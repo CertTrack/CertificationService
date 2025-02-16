@@ -16,7 +16,7 @@ import lombok.Setter;
 @Setter
 public class UserPrincipal implements UserDetails{
 
-	private Long userId;
+	private int userId;
 	private String email;
 	private Collection<? extends GrantedAuthority> authorities;
 	@JsonIgnore

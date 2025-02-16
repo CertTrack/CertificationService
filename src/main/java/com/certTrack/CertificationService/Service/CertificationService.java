@@ -9,13 +9,14 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -54,26 +55,42 @@ public class CertificationService {
 	@Value("${aws.s3.bucket}")
 	private String bucket;
 
-	public List<Certification> findByUserId(int id) {
-		return certificationRepository.findByUserId(id);
+	public ResponseEntity<?> findByUserId(int id) {
+    	List<Certification> certifications = certificationRepository.findByUserId(id);
+        if (certifications.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Certifications not found. Or the user does not exist"));
+        }
+        return ResponseEntity.ok(certifications);
 	}
 
-	public byte[] findByUserIdAndCourseId(int userId, int courseId) {
-		Certification cert = certificationRepository.findByUserIdAndCourseId(userId, courseId).getFirst();
-		S3Object object = amazonS3.getObject(bucket, cert.getFilePath());
-		S3ObjectInputStream inputStream = object.getObjectContent();
-		try {
-			byte[] content = IOUtils.toByteArray(inputStream);
-			return content;
-		}catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+	public ResponseEntity<?> findByUserIdAndCourseId(int userId, int courseId) {
+	    Certification cert = certificationRepository.findByUserIdAndCourseId(userId, courseId).getFirst();
+	    try {
+	        amazonS3.getObjectMetadata(bucket, cert.getFilePath());
+
+	        S3Object object = amazonS3.getObject(bucket, cert.getFilePath());
+	        S3ObjectInputStream inputStream = object.getObjectContent();
+	        byte[] content = IOUtils.toByteArray(inputStream);
+	        ByteArrayResource arrayResource = new ByteArrayResource(content);
+
+	        return ResponseEntity
+	                .ok()
+	                .contentLength(content.length)
+	                .header("Content-type", "application/octet-stream")
+	                .header("Content-disposition", "attachment; filename=\""+"certificate.pdf"+"\"")
+	                .body(arrayResource);
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(new ResponseMessage("This certificate does not exist."));
+	    } 
 	}
 
-	public Certification findById(int id) {
-		Certification cert = certificationRepository.findById(id).orElse(null);
-		return cert;
+	public ResponseEntity<?> findById(int id) {
+        Certification certification = certificationRepository.findById(id).orElse(null);
+        if (certification == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Certification not found."));
+        }
+		return ResponseEntity.ok(certification);
 	}
 
 	public ResponseEntity<?> findByValidationCode(String validationCode) {
@@ -119,7 +136,7 @@ public class CertificationService {
 	        title.setAlignment(Element.ALIGN_CENTER);
 	        document.add(title);
 
-	        document.add(new Paragraph("\n\n\n\n\n")); // Пропуск кількох рядків
+	        document.add(new Paragraph("\n\n\n\n\n"));
 
 	        Paragraph certifiesText = new Paragraph("This certifies that:", grayFont);
 	        certifiesText.setAlignment(Element.ALIGN_CENTER);
@@ -131,7 +148,7 @@ public class CertificationService {
 	        userNameParagraph.setAlignment(Element.ALIGN_CENTER);
 	        document.add(userNameParagraph);
 
-	        document.add(new Paragraph("\n\n")); // Пропуск кількох рядків
+	        document.add(new Paragraph("\n\n"));
 
 	        
 
@@ -139,9 +156,9 @@ public class CertificationService {
 	        PdfPCell cell = new PdfPCell(new Phrase("has successfully completed the course by demonstrating theoretical and practical understanding of", grayFont));
 	        cell.setBorder(Rectangle.NO_BORDER);
 	        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-	        cell.setNoWrap(false); // Дозволяє перенесення рядків
+	        cell.setNoWrap(false);
 	        PdfPTable table = new PdfPTable(1);
-	        table.setWidthPercentage(40); // Встановлення ширини таблиці у відсотках від ширини сторінки
+	        table.setWidthPercentage(40);
 	        table.setHorizontalAlignment(Element.ALIGN_CENTER);
 	        table.addCell(cell);
 	        document.add(table);
@@ -155,16 +172,16 @@ public class CertificationService {
 	        courseNameParagraph.setAlignment(Element.ALIGN_CENTER);
 	        document.add(courseNameParagraph);
 
-	        document.add(new Paragraph("\n\n\n\n\n")); // Пропуск кількох рядків
+	        document.add(new Paragraph("\n\n\n\n\n"));
 
 	        Paragraph details = new Paragraph("CertTrack corp. by Dmytro Trofimov\nDate: " + certification.getIssuedDate() + "\nCertification ID: " + certification.getId() + "\nValidation code: " + certification.getValidationCode(), defaultFont);
 	        details.setAlignment(Element.ALIGN_RIGHT);
 	        document.add(details);
 
 
-	        Image image = Image.getInstance("file:///home/dmytro/%D0%97%D0%B0%D0%B2%D0%B0%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D0%BD%D0%BD%D1%8F/photo_5269732161760651566_x.jpg");
-	        image.setAbsolutePosition(36, 36); // Встановлення позиції зображення
-	        image.scaleToFit(100, 100); // Встановлення розміру зображення
+	        Image image = Image.getInstance("src/certificateElement/photo_5269732161760651566_x.jpg");
+	        image.setAbsolutePosition(36, 36);
+	        image.scaleToFit(100, 100);
 	        document.add(image);
 	        document.close();
 	    } catch (DocumentException e) {
@@ -178,32 +195,8 @@ public class CertificationService {
 	    return outputStream.toByteArray();
 	}
 
-
-//    public void saveCertificate(MultipartFile file, Certification certification) {
-//    	certification = certificationRepository.save(certification);
-//    	File fileObj = convertMultipartFileToFile(file);
-//    	String fileName = certification.getId() + "_" + file.getOriginalFilename();
-//        amazonS3.putObject(new PutObjectRequest(bucket, fileName, fileObj));
-//        	    /*.withCannedAcl(CannedAccessControlList.PublicRead)*/
-//        fileObj.delete();
-//        certification.setFilePath(fileName);
-//        certificationRepository.save(certification);
-// 
-//    }
-
-//	private File convertMultipartFileToFile(MultipartFile file) {
-//		File convertedFile = new File(file.getOriginalFilename());
-//		try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
-//			fos.write(file.getBytes());
-//		} catch (IOException e) {
-//			System.out.println("Error converting multipartfile to file");
-//
-//		}
-//		return convertedFile;
-//	}
-
 	public ResponseEntity<?> deleteCertificateById(int id) {
-    	Certification certification = this.findById(id);
+    	Certification certification = (Certification) this.findById(id).getBody();
         if (certification == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Certification not found."));
         }

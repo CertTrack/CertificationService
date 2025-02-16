@@ -56,7 +56,7 @@ class CertificationControllerTest {
 	@WithMockUser
 	@Test
 	public void AuthorizedUserCanSeeCertificationsByUserId() throws Exception {
-		List<Certification> list = certificationService.findByUserId(1);
+		List<Certification> list = (List<Certification>) certificationService.findByUserId(1).getBody();
 		String responseJson = objectMapper.writeValueAsString(list);
 		api.perform(get("/certifications/user?id=1").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(content().json(responseJson));
@@ -66,8 +66,7 @@ class CertificationControllerTest {
 	@Test
 	public void AuthorizedUserCanSeeCertificationsByUserIdAndCourseId() throws Exception {
 		api.perform(get("/certifications/usercourse")
-                .param("userId", "1")
-                .param("courseId", "5"))
+                .param("courseId", "2"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/octet-stream"))
                 .andExpect(header().string("Content-Disposition", "attachment; filename=\"certificate.pdf\""));
