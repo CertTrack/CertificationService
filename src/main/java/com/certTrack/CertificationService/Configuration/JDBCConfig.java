@@ -1,13 +1,15 @@
 package com.certTrack.CertificationService.Configuration;
 
+import javax.sql.DataSource;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
-public class JDBSConfig {
+public class JDBCConfig {
 	@Bean
-	public JdbcTemplate jdbcTemplate(javax.sql.DataSource dataSource) {
+	public JdbcTemplate jdbcTemplate(DataSource dataSource) {
 		return new JdbcTemplate(dataSource);
 	}
 }

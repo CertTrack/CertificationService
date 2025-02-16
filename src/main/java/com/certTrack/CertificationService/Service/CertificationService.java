@@ -10,13 +10,15 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -51,6 +53,9 @@ public class CertificationService {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	MongoTemplate mongoTemplate;
 	
 	@Value("${aws.s3.bucket}")
 	private String bucket;
@@ -142,6 +147,7 @@ public class CertificationService {
 	        certifiesText.setAlignment(Element.ALIGN_CENTER);
 	        document.add(certifiesText);
 
+	        
 	        String query = "SELECT email FROM users WHERE id = ?";
 	        String userName = jdbcTemplate.queryForObject(query, String.class, certification.getUserId());
 	        Paragraph userNameParagraph = new Paragraph(userName, userNameFont);
@@ -166,8 +172,12 @@ public class CertificationService {
 //	        hasCompletedText.setAlignment(Element.ALIGN_CENTER);
 //	        document.add(hasCompletedText);
 
-	        String queryOfCourseName = "SELECT name FROM course WHERE id = ?";
-	        String courseName = jdbcTemplate.queryForObject(queryOfCourseName, String.class, certification.getCourseId());
+	        Query queryForCourseName = new Query();
+	        queryForCourseName.addCriteria(Criteria.where("_id").is(certification.getCourseId()));
+	        queryForCourseName.fields().include("name");
+	        String courseName = mongoTemplate.findOne(queryForCourseName, org.bson.Document.class, "courses")
+	                .getString("name");
+
 	        Paragraph courseNameParagraph = new Paragraph(courseName, courseFont);
 	        courseNameParagraph.setAlignment(Element.ALIGN_CENTER);
 	        document.add(courseNameParagraph);
